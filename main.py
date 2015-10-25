@@ -60,6 +60,27 @@ def breed(string1, string2):
 	return child
 
 """
+TODO
+
+matching fn:
+	1) sort by fitness
+	2) create matching data structure
+		hashable key -> string + index
+	3) use shrinking cutoff
+	4) breed from best to worst to fill out 
+		an equal sized new generation
+	5) return generation
+
+doGA:
+	1) randomly gen first generation
+	2) while timeout > 0, run matching fn
+	3) gen = new_gen
+	4) sort by fitness
+	5) return highest value
+"""
+
+
+"""
 The central algorithm
 @param states -> a list of possible char states
 @param rules -> a dictionary of char pairings and fitnesses
