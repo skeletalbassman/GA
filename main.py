@@ -181,7 +181,8 @@ def doGA(states, rules, length, n, timeout):
 			member += states[index]
 		gen.append([member, fitness(member,rules)])
 	while timeout > 0:
-		gen = match(gen, rules, 3)
+		gen = match(gen, rules, 400)
+		print gen[0]
 		timeout -= 1
 	gen.sort(key=lambda x: x[1], reverse=True)
 	return gen[0]
@@ -206,7 +207,7 @@ def main():
 	assert fitness(string1, rules) == 2
 	assert fitness(string2, rules) == 4
 
-	result = doGA(states, rules, 5, 250, 100)
+	result = doGA(states, rules, 100, 500, 20)
 	print result
 
 if __name__ == "__main__":
