@@ -45,22 +45,37 @@ Takes two strings and returns a single string 'offspring'.
 This example only allows a single 'crossover' between
 parent strings. Normally, GA would use multiple crossovers
 and mutations to improve performance.
-
+@param states -> a list of possible states
 @param string1 -> a string to be bred
 @param string2 -> a string to be bred
 
 returns @param child -> the resulting child string
 """
-def breed(string1, string2):
+def breed(states, string1, string2):
+	length = len(string1[0])
+	rate = 0.025
 	child = ''
-	cross1 = random.randint(0,len(string1[0])/2)
-	cross2 = random.randint(cross1,len(string1[0]))
+	cross1 = random.randint(0,length/2)
+	cross2 = random.randint(cross1,length)
+	mutations = random.sample(range(0,length),int(rate*length))
 	for i in range(cross1):
-		child += string1[0][i]
+		if i in mutations:
+			new_char = random.randint(0,len(states)-1)
+			child += states[new_char]
+		else:
+			child += string1[0][i]
 	for i in range(cross1,cross2):
-		child += string2[0][i]
+		if i in mutations:
+			new_char = random.randint(0,len(states)-1)
+			child += states[new_char]
+		else:
+			child += string2[0][i]
 	for i in range(cross2, len(string1[0])):
-		child += string1[0][i]
+		if i in mutations:
+			new_char = random.randint(0,len(states)-1)
+			child += states[new_char]
+		else:
+			child += string1[0][i]
 	return child
 
 """
@@ -115,12 +130,14 @@ def findMatch(gen, matches, i, cutoff, prev=None):
 """
 Creates a matched set of members to be bred. then
 creates a new generation from those members.
+@param states -> a list of possible states
 @param gen -> a list of the current generation
+@param rules -> dictionary of char pairings
 @param cutoff -> int the index to cut off the list
 
 returns @param new_gen -> a list of the next generation
 """
-def match(gen, rules, cutoff):
+def match(states, gen, rules, cutoff):
 	gen.sort(key=lambda x: x[1], reverse=True)
 	matches = {}
 	new_gen = []
@@ -150,8 +167,8 @@ def match(gen, rules, cutoff):
 			matches[gen[index1][0]+str(index1)].append(gen[i])
 			matches[gen[index2][0]+str(index2)].append(gen[i])
 			for i in range(2):
-				child1 = breed(gen[i], gen[index1])
-				child2 = breed(gen[i], gen[index2])
+				child1 = breed(states, gen[i], gen[index1])
+				child2 = breed(states, gen[i], gen[index2])
 				new_gen.append([child1, fitness(child1, rules)])
 				new_gen.append([child2, fitness(child2, rules)])
 		else:
@@ -159,8 +176,8 @@ def match(gen, rules, cutoff):
 			#breed twice
 			matches[gen[i][0]+str(i)].append(gen[index1])
 			matches[gen[index1][0]+str(index1)].append(gen[i])
-			child1 = breed(gen[i], gen[index1])
-			child2 = breed(gen[i], gen[index1])
+			child1 = breed(states, gen[i], gen[index1])
+			child2 = breed(states, gen[i], gen[index1])
 			new_gen.append([child1, fitness(child1, rules)])
 			new_gen.append([child2, fitness(child2, rules)])
 	return new_gen
@@ -184,7 +201,7 @@ def doGA(states, rules, length, n, timeout):
 			member += states[index]
 		gen.append([member, fitness(member,rules)])
 	while timeout > 0:
-		gen = match(gen, rules, 300)
+		gen = match(states, gen, rules, 300)
 		print gen[0]
 		timeout -= 1
 	gen.sort(key=lambda x: x[1], reverse=True)
@@ -210,7 +227,7 @@ def main():
 	assert fitness(string1, rules) == 2
 	assert fitness(string2, rules) == 4
 
-	result = doGA(states, rules, 100, 500, 20)
+	result = doGA(states, rules, 100, 500, 100)
 	print result
 
 if __name__ == "__main__":
