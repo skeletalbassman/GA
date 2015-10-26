@@ -53,11 +53,14 @@ returns @param child -> the resulting child string
 """
 def breed(string1, string2):
 	child = ''
-	cross = random.randint(0,len(string1[0]))
-	for i in range(cross):
+	cross1 = random.randint(0,len(string1[0])/2)
+	cross2 = random.randint(cross1,len(string1[0]))
+	for i in range(cross1):
 		child += string1[0][i]
-	for i in range(cross, len(string1[0])):
+	for i in range(cross1,cross2):
 		child += string2[0][i]
+	for i in range(cross2, len(string1[0])):
+		child += string1[0][i]
 	return child
 
 """
@@ -181,7 +184,7 @@ def doGA(states, rules, length, n, timeout):
 			member += states[index]
 		gen.append([member, fitness(member,rules)])
 	while timeout > 0:
-		gen = match(gen, rules, 400)
+		gen = match(gen, rules, 300)
 		print gen[0]
 		timeout -= 1
 	gen.sort(key=lambda x: x[1], reverse=True)
