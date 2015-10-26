@@ -43,7 +43,8 @@ def fitness(string, rules):
 """
 Takes two strings and returns a single string 'offspring'.
 This example only allows a single 'crossover' between
-parent strings.
+parent strings. Normally, GA would use multiple crossovers
+and mutations to improve performance.
 
 @param string1 -> a string to be bred
 @param string2 -> a string to be bred
@@ -52,11 +53,11 @@ returns @param child -> the resulting child string
 """
 def breed(string1, string2):
 	child = ''
-	cross = random.randint(0,len(string1))
+	cross = random.randint(0,len(string1[0]))
 	for i in range(cross):
-		child += string1[i]
-	for i in range(cross, len(string1)):
-		child += string2[i]
+		child += string1[0][i]
+	for i in range(cross, len(string1[0])):
+		child += string2[0][i]
 	return child
 
 """
@@ -79,6 +80,87 @@ doGA:
 	5) return highest value
 """
 
+"""
+Finds a mate for a given member
+@param gen -> list of generation
+@param matches -> the matches dictionary
+@param i -> current index
+@param cutoff -> int cutoff
+@param prev -> optional int index of previous partner
+
+returns @param partner -> string matched partner
+"""
+def findMatch(gen, matches, i, cutoff, prev=None):
+	#loop until mate is available
+	loop = True
+	while loop:
+		index = random.randint(0,cutoff-1)
+		if index == i:
+			continue
+		if index == prev:
+			continue
+		if gen[index][0]+str(index) in matches:
+			if index <= len(gen)-cutoff:
+				if len(matches[gen[index][0]+str(index)]) >= 4:
+					continue
+			else:
+				if len(matches[gen[index][0]+str(index)]) >= 2:
+					continue
+		loop = False
+	return index
+
+"""
+Creates a matched set of members to be bred. then
+creates a new generation from those members.
+@param gen -> a list of the current generation
+@param cutoff -> int the index to cut off the list
+
+returns @param new_gen -> a list of the next generation
+"""
+def match(gen, rules, cutoff):
+	gen.sort(key=lambda x: x[1], reverse=True)
+	matches = {}
+	new_gen = []
+	for i in range(cutoff):
+		if gen[i][0]+str(i) in matches:
+			if i <= len(gen)-cutoff:
+				if len(matches[gen[i][0]+str(i)]) >= 4:
+					continue
+			else:
+				if len(matches[gen[i][0]+str(i)]) >= 2:
+					continue
+		else:
+			matches[gen[i][0]+str(i)] = []
+		if i > cutoff:
+			#don't breed
+			continue
+		index1 = findMatch(gen, matches, i, cutoff)
+		if not gen[index1][0]+str(index1) in matches:
+			matches[gen[index1][0]+str(index1)] = []
+		if i <= len(gen)-cutoff:
+			#need two random partners
+			#breed twice with each
+			index2 = findMatch(gen, matches, i, cutoff, index1)
+			if not gen[index2][0]+str(index2) in matches:
+				matches[gen[index2][0]+str(index2)] = []
+			matches[gen[i][0]+str(i)].extend([gen[index1], gen[index2]])
+			matches[gen[index1][0]+str(index1)].append(gen[i])
+			matches[gen[index2][0]+str(index2)].append(gen[i])
+			for i in range(2):
+				child1 = breed(gen[i], gen[index1])
+				child2 = breed(gen[i], gen[index2])
+				new_gen.append([child1, fitness(child1, rules)])
+				new_gen.append([child2, fitness(child2, rules)])
+		else:
+			#need one random partner
+			#breed twice
+			matches[gen[i][0]+str(i)].append(gen[index1])
+			matches[gen[index1][0]+str(index1)].append(gen[i])
+			child1 = breed(gen[i], gen[index1])
+			child2 = breed(gen[i], gen[index1])
+			new_gen.append([child1, fitness(child1, rules)])
+			new_gen.append([child2, fitness(child2, rules)])
+	return new_gen
 
 """
 The central algorithm
@@ -95,9 +177,14 @@ def doGA(states, rules, length, n, timeout):
 	for i in range(n):
 		member = ''
 		for i in range(length):
-			index = random.randint(0,len(states))
+			index = random.randint(0,len(states)-1)
 			member += states[index]
 		gen.append([member, fitness(member,rules)])
+	while timeout > 0:
+		gen = match(gen, rules, 3)
+		timeout -= 1
+	gen.sort(key=lambda x: x[1], reverse=True)
+	return gen[0]
 
 def main():
 	states = ['a','b','c']
@@ -118,6 +205,9 @@ def main():
 	string2 = 'bac'
 	assert fitness(string1, rules) == 2
 	assert fitness(string2, rules) == 4
+
+	result = doGA(states, rules, 5, 250, 100)
+	print result
 
 if __name__ == "__main__":
 	main()
