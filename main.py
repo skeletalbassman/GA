@@ -42,9 +42,7 @@ def fitness(string, rules):
 
 """
 Takes two strings and returns a single string 'offspring'.
-This example only allows a single 'crossover' between
-parent strings. Normally, GA would use multiple crossovers
-and mutations to improve performance.
+This example uses multiple crossovers and random mutations.
 @param states -> a list of possible states
 @param string1 -> a string to be bred
 @param string2 -> a string to be bred
